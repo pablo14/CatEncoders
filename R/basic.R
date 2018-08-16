@@ -104,7 +104,11 @@ setMethod("transform", signature(enc = "LabelEncoder.Numeric"), function(enc, y)
   data.table::setkey(mapping, "classes")
   ind = 0L # prevent a warning when build package
   J = 0L
-  return(mapping[J(y), ind])
+
+  res=mapping[J(y), ind]
+  check_missing_labels(y, res, mapping)
+
+  return(res)
 })
 
 #' @rdname transform-methods
@@ -116,7 +120,11 @@ setMethod("transform", signature(enc = "LabelEncoder.Character"), function(enc, 
   data.table::setkey(mapping, "classes")
   ind = 0L # prevent a warning when build package
   J = 0L
-  return(mapping[J(y), ind])
+
+  res=mapping[J(y), ind]
+  check_missing_labels(y, res, mapping)
+
+  return(res)
 })
 
 #' @rdname transform-methods
@@ -128,7 +136,10 @@ setMethod("transform", signature(enc = "LabelEncoder.Factor"), function(enc, y) 
   data.table::setkey(mapping, "classes")
   ind = 0L # prevent a warning when build package
   J = 0L
-  return(mapping[J(y), ind])
+  res=mapping[J(y), ind]
+  check_missing_labels(y, res, mapping)
+
+  return(res)
 })
 
 #' @rdname transform-methods
@@ -177,6 +188,18 @@ setMethod("transform", signature(enc = "OneHotEncoder"), function(enc,
     return(as.matrix(sp_matrix))
   return(sp_matrix)
 })
+
+
+check_missing_labels <- function(y, res, mapping) {
+  if(sum(is.na(res))>0)
+  {
+    new_l=sort(unique(y))
+    levels_not_present=paste(new_l[!(new_l %in% mapping$classes)], collapse=", ")
+    msg=sprintf("Values not present in encoded labels: %s", levels_not_present)
+
+    warning(msg)
+  }
+}
 
 #' inverse.transform
 #' transforms an integer vector back to the original vector
